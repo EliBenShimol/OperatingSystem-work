@@ -411,8 +411,6 @@ wait(uint64 addr, uint64 msg)
           pid = pp->pid;
           if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
                                   sizeof(pp->xstate)) < 0) {
-            copyout(p->pagetable, msg, (char *)&pp->exitmsg,
-                                  sizeof((char)32));
             release(&pp->lock);
             release(&wait_lock);
             return -1;
@@ -420,6 +418,8 @@ wait(uint64 addr, uint64 msg)
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
+          copyout(p->pagetable, msg, (char *)pp->exitmsg,
+                  sizeof(char)*32);
           return pid;
         }
         release(&pp->lock);

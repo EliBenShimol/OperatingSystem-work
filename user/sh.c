@@ -167,7 +167,9 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
-    wait(0, 0);
+    char* a = (char*)(malloc(sizeof(char)*32));
+    wait(0, a);
+    printf(a);
   }
   exit(0, "done");
 }
@@ -189,6 +191,7 @@ fork1(void)
     panic("fork");
   return pid;
 }
+
 
 //PAGEBREAK!
 // Constructors
