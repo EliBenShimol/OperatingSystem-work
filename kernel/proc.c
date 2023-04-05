@@ -147,7 +147,17 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
   //new
+  int acc = -1;
+  struct proc *newP;
+  for(newP = proc; newP < &proc[NPROC]; newP++) {
+    if(acc >newP->accumulator || acc == -1)
+      acc = newP->accumulator;
+
+  }
+  if(acc == -1)
+    acc = 0;
   p->ps_priority = 5;
+  p->accumulator = acc;
 
   return p;
 }
@@ -283,16 +293,12 @@ int
 fork(void)
 {
   //new
-  int acc = 0;
+  int acc = -1;
   struct proc *newP;
-  newP = proc;
-  if(newP < &proc[NPROC]){
-    acc = newP->accumulator;
-    for(; newP < &proc[NPROC]; newP++) {
-      if(acc >newP->accumulator)
-        acc = newP->accumulator;
+  for(newP = proc; newP < &proc[NPROC]; newP++) {
+    if(acc >newP->accumulator || acc == -1)
+      acc = newP->accumulator;
 
-    }
   }
   int i, pid;
   struct proc *np;
@@ -336,6 +342,8 @@ fork(void)
   acquire(&np->lock);
   np->state = RUNNABLE;
   //new
+  if(acc == -1)
+    acc = 0;
   np->ps_priority = 5;
   np->accumulator = acc;
   release(&np->lock);
@@ -472,26 +480,20 @@ scheduler(void)
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-    
-    for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      //new
-      struct proc *newP = proc;
-      int add = -1;
-      int count = 0;
-      int acc = -1;
-      for(; newP < &proc[NPROC]; newP++) {
-        if(newP->state == RUNNABLE){
-          if(acc == -1 || acc > newP->accumulator){
-            acc = newP->accumulator;
-            add = count;
-          }
+    //new
+    struct proc* tmp = proc;
+    int acc = -1;
+    for(p = proc; p < &proc[NPROC]; p++) 
+      if(p->state == RUNNABLE)
+        if(acc == -1 || acc > p->accumulator){
+          acc = p->accumulator; 
+          tmp = p;
         }
-        count++;
-      }
-      newP = proc;
-      newP = newP + add;
-      if(p->state == RUNNABLE && p == newP && acc != -1) {
+    
+    p = tmp;
+    //for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && acc == p->accumulator) { //new
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
@@ -504,8 +506,7 @@ scheduler(void)
         c->proc = 0;
       }
       release(&p->lock);
-    }
-    
+   // }
   }
 }
 
