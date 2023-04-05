@@ -36,6 +36,12 @@ sys_memsize(void)
   return myproc()->sz;
 }
 
+void
+sys_set_(int priority)
+{
+  myproc()-> = priority;
+}
+
 uint64
 sys_wait(void)
 {

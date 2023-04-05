@@ -55,6 +55,7 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+
   }
 }
 
@@ -145,6 +146,8 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+  //new
+  p->ps_priority = 5;
 
   return p;
 }
@@ -279,6 +282,18 @@ growproc(int n)
 int
 fork(void)
 {
+  //new
+  int acc = 0;
+  struct proc *newP;
+  newP = proc;
+  if(newP < &proc[NPROC]){
+    acc = newP->accumulator;
+    for(; newP < &proc[NPROC]; newP++) {
+      if(acc >newP->accumulator)
+        acc = newP->accumulator;
+
+    }
+  }
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
@@ -320,6 +335,9 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  //new
+  np->ps_priority = 5;
+  np->accumulator = acc;
   release(&np->lock);
 
   return pid;
@@ -454,10 +472,26 @@ scheduler(void)
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-
+    
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
+      //new
+      struct proc *newP = proc;
+      int add = -1;
+      int count = 0;
+      int acc = -1;
+      for(; newP < &proc[NPROC]; newP++) {
+        if(newP->state == RUNNABLE){
+          if(acc == -1 || acc > newP->accumulator){
+            acc = newP->accumulator;
+            add = count;
+          }
+        }
+        count++;
+      }
+      newP = proc;
+      newP = newP + add;
+      if(p->state == RUNNABLE && p == newP && acc != -1) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
@@ -471,6 +505,7 @@ scheduler(void)
       }
       release(&p->lock);
     }
+    
   }
 }
 

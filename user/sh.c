@@ -128,7 +128,7 @@ runcmd(struct cmd *cmd)
       runcmd(bcmd->cmd);
     break;
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 int
@@ -171,7 +171,7 @@ main(void)
     wait(0, a);
     printf(a);
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 void

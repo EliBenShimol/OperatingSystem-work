@@ -25,7 +25,7 @@ forktest(void)
     if(pid < 0)
       break;
     if(pid == 0)
-      exit(0, "done");
+      exit(0, "");
   }
 
   if(n == N){
@@ -52,5 +52,5 @@ int
 main(void)
 {
   forktest();
-  exit(0, "done");
+  exit(0, "");
 }
