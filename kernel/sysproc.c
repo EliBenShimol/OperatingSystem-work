@@ -37,9 +37,9 @@ sys_memsize(void)
 }
 
 void
-sys_set_(int priority)
+sys_set_ps_priority(int priority)
 {
-  myproc()-> = priority;
+  myproc()->ps_priority = priority;
 }
 
 uint64
