@@ -173,6 +173,7 @@ void
 clockintr()
 {
   acquire(&tickslock);
+  updateProcs(); //new, maybe borken
   ticks++;
   wakeup(&ticks);
   release(&tickslock);

@@ -8,7 +8,6 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
-extern int sched_policy;
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -82,6 +81,9 @@ void            panic(char*) __attribute__((noreturn));
 void            printfinit(void);
 
 // proc.c
+
+//int sched_policy;
+void            updateProcs(void);
 int             cpuid(void);
 void            exit(int, char* msg);
 int             fork(void);

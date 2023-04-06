@@ -57,7 +57,7 @@ uint64
 sys_set_policy(int policy)
 {
   if(policy>=0 && policy<=2){
-      sched_policy=policy;
+      //sched_policy=policy;
       return 0;
   }
   return -1;

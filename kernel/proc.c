@@ -5,7 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-
+int decay[]= {125,100,75};
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
@@ -263,7 +263,14 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
-
+  ///newd
+  //only proc that's now called through fork, all fields set to default
+  p->retime=0;
+  p->rtime=0;
+  p->stime=0;
+  p->accumulator=0;
+  p->ps_priority=5;
+  p->cfs_priority=1;
   release(&p->lock);
 }
 
@@ -345,6 +352,10 @@ fork(void)
   if(acc == -1)
     acc = 0;
   np->ps_priority = 5;
+  np->cfs_priority=p->cfs_priority; //newd
+  np->retime=0;
+  np->rtime=0;
+  np->stime=0;
   np->accumulator = acc;
   release(&np->lock);
 
@@ -462,7 +473,18 @@ wait(uint64 addr, uint64 msg)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-
+void
+updateProcs(){
+  struct proc* p;
+  for(p = proc; p < &proc[NPROC]; p++){
+      if(p->state == RUNNABLE)
+        p->rtime++;
+      if(p->state == SLEEPING)
+        p->retime++;
+      if(p->state == RUNNING)
+        p->stime++;
+  }
+}
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -470,6 +492,7 @@ wait(uint64 addr, uint64 msg)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+//original round robin
 void
 scheduler(void)
 {
@@ -480,25 +503,17 @@ scheduler(void)
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-    //new
-    struct proc* tmp = proc;
-    int acc = -1;
-    for(p = proc; p < &proc[NPROC]; p++) 
-      if(p->state == RUNNABLE)
-        if(acc == -1 || acc > p->accumulator){
-          acc = p->accumulator; 
-          tmp = p;
-        }
-    
-    p = tmp;
-    //for(p = proc; p < &proc[NPROC]; p++) {
+
+    for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE && acc == p->accumulator) { //new
+      if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
         c->proc = p;
+        //printf("switching proc, ps: %d, cfs: %d, rtime: %d, retime: %d,stime: %d\n",
+        //        p->ps_priority,p->cfs_priority,p->rtime,p->retime,p->stime); //DEBUG
         swtch(&c->context, &p->context);
 
         // Process is done running for now.
@@ -506,10 +521,91 @@ scheduler(void)
         c->proc = 0;
       }
       release(&p->lock);
-   // }
+    }
   }
 }
+//task 6 scheduler
+// void
+// scheduler(void)
+// {
+//   struct proc *p;
+//   struct cpu *c = mycpu();
+  
+//   c->proc = 0;
+//   for(;;){
+//     // Avoid deadlock by ensuring that devices can interrupt.
+//     intr_on();
+//     //new dnew
+//     struct proc* tmp = proc;
+//     int acc = -1;
+//     for(p = proc; p < &proc[NPROC]; p++) 
+//       if(p->state == RUNNABLE){
+//         int weight=decay[p->cfs_priority]*(p->rtime/(p->rtime+p->retime+p->stime));
+//         if(acc == -1 || acc > weight){
+//           acc = weight; 
+//           tmp = p;
+//         }
+//       }
+    
+//     p = tmp;
+//     //for(p = proc; p < &proc[NPROC]; p++) {
+//       acquire(&p->lock);
+//       if(p->state == RUNNABLE && acc == p->accumulator) { //new
+//         // Switch to chosen process.  It is the process's job
+//         // to release its lock and then reacquire it
+//         // before jumping back to us.
+//         p->state = RUNNING;
+//         c->proc = p;
+//         swtch(&c->context, &p->context);
 
+//         // Process is done running for now.
+//         // It should have changed its p->state before coming back.
+//         c->proc = 0;
+//       }
+//       release(&p->lock);
+//    // }
+//   }
+// }
+///task 5 scheduler
+// void
+// scheduler(void)
+// {
+//   struct proc *p;
+//   struct cpu *c = mycpu();
+  
+//   c->proc = 0;
+//   for(;;){
+//     // Avoid deadlock by ensuring that devices can interrupt.
+//     intr_on();
+//     //new
+//     struct proc* tmp = proc;
+//     int acc = -1;
+//     for(p = proc; p < &proc[NPROC]; p++) 
+//       if(p->state == RUNNABLE)
+//         if(acc == -1 || acc > p->accumulator){
+//           acc = p->accumulator; 
+//           tmp = p;
+//         }
+    
+//     p = tmp;
+//     //for(p = proc; p < &proc[NPROC]; p++) {
+//       acquire(&p->lock);
+//       if(p->state == RUNNABLE && acc == p->accumulator) { //new
+//         // Switch to chosen process.  It is the process's job
+//         // to release its lock and then reacquire it
+//         // before jumping back to us.
+//         p->state = RUNNING;
+//         c->proc = p;
+//         swtch(&c->context, &p->context);
+
+//         // Process is done running for now.
+//         // It should have changed its p->state before coming back.
+//         c->proc = 0;
+//       }
+//       release(&p->lock);
+//    // }
+//   }
+//  }
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
 // intena because intena is a property of this
