@@ -36,10 +36,32 @@ sys_memsize(void)
   return myproc()->sz;
 }
 
-void
+uint64
 sys_set_ps_priority(int priority)
 {
-  myproc()->ps_priority = priority;
+  if(priority>=0 && priority<=10){
+    myproc()->ps_priority = priority;
+  }
+  return 0;
+}
+uint64
+sys_set_cfs_priority(int priority)
+{
+  if(priority>=0 && priority<=2){
+    myproc()->cfs_priority = priority;
+    return 0;
+  }
+  return -1;
+}
+uint64
+sys_set_policy(int policy)
+{
+  if(policy>=0 && policy<=2){
+      sched_policy=policy;
+      return 0;
+  }
+  return -1;
+
 }
 
 uint64

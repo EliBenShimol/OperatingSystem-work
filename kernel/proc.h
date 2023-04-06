@@ -94,6 +94,10 @@ struct proc {
   //new
   long long accumulator;
   int ps_priority;
+  int cfs_priority;
+  int rtime;
+  int stime;
+  int retime;
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
