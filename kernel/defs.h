@@ -83,6 +83,7 @@ void            printfinit(void);
 
 // proc.c
 int             cpuid(void);
+//task3
 void            exit(int, char* msg);
 int             fork(void);
 int             growproc(int);
@@ -100,6 +101,7 @@ void            scheduler(void) __attribute__((noreturn));
 void            sched(void);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
+//task3
 int             wait(uint64 addr, uint64 msg);
 void            wakeup(void*);
 void            yield(void);

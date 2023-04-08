@@ -2,6 +2,7 @@ struct stat;
 
 // system calls
 int fork(void);
+//task3
 int exit(int, char*) __attribute__((noreturn));
 int wait(int*, char*);
 int pipe(int*);
@@ -22,6 +23,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+//task2
 int memsize(void);
 void set_ps_priority(int);   //new
 
