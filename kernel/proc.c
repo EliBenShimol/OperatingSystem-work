@@ -92,18 +92,17 @@ myproc(void)
   pop_off();
   return p;
 }
-void
-get_cfs_stats(int pid,int cfs,int r,int s,int re){
+
+struct proc* getProc(int pid){
   struct proc *p;
   for(p = proc; p < &proc[NPROC]; p++) {
     if(p->pid==pid){
-        *(int*)cfs=p->cfs_priority;
-        *(int*)r=p->rtime;
-        *(int*)s=p->stime;
-        *(int*)re=p->retime;
+      return p;
     }
   }
+  return 0;
 }
+
 int
 allocpid()
 {
@@ -540,7 +539,10 @@ scheduler(void)
 void
 RobinScheduler(struct proc *p,struct cpu *c)
 {
-   // printf("DEBUG: 0\n");
+  if(!check){
+    printf("DEBUG: 0\n");
+    check++;
+  }
     //printf("running policy 0: Round Robin Scheduler\n");
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -568,7 +570,10 @@ RobinScheduler(struct proc *p,struct cpu *c)
 void
 PSscheduler(struct proc *p,struct cpu *c)
 {    
-  //printf("DEBUG: 1\n");
+    if(!check){
+    printf("DEBUG: 1\n");
+    check++;
+  }
   //printf("running policy 1: Priority Scheduler\n");
   // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -607,7 +612,10 @@ void
 CFSscheduler(struct proc *p,struct cpu *c)
 {
     //printf("running policy 2: : Completely Fair Scheduler \n");
-    //printf("DEBUG: 2\n");
+    if(!check){
+      printf("DEBUG: 2\n");
+      check++;
+  }
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
     //new dnew

@@ -107,6 +107,7 @@ extern uint64 sys_memsize(void);
 extern uint64 sys_set_ps_priority(void);
 extern uint64 sys_get_ps_priority(void);
 extern uint64 sys_set_cfs_priority(void);
+//task6
 extern uint64 sys_get_cfs_stats(void);
 extern uint64 sys_set_policy(void);
 
