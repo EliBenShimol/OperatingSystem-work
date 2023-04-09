@@ -81,6 +81,7 @@ usertrap(void)
     //new
     int add = p->ps_priority;
     p->accumulator = p->accumulator + add;
+    //updateProcs();
     yield();
   }
 
@@ -160,6 +161,7 @@ kerneltrap()
     struct proc *p = myproc();
     int add = p->ps_priority;
     p->accumulator = p->accumulator + add;
+    //updateProcs();
     yield();
   }
 

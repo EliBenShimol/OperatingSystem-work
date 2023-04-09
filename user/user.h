@@ -28,7 +28,7 @@ int memsize(void);
 void set_ps_priority(int);   //new
 int get_ps_priority(void); 
 int set_cfs_priority(int);   //newd
-void get_cfs_stats(int,int*,int*,int*,int*);   //newd
+uint64 get_cfs_stats(int, char*);   //newd
 int set_policy(int);   //newd
 
 // ulib.c

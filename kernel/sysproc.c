@@ -42,6 +42,7 @@ uint64
 sys_get_ps_priority(void)
 {
   return myproc()->ps_priority;
+}
   
 //newd
 uint64
@@ -65,15 +66,24 @@ sys_set_cfs_priority()
   }
   return -1;
 }
+
 uint64
 sys_get_cfs_stats(){
-  int pid=-1,cfs=0,r=0,s=0,re=0;
+  int pid=-1;
+  uint64 addr;
   argint(0, &pid);
-  argint(1, &cfs);
-  argint(2, &r);
-  argint(3, &s);
-  argint(4, &re);
-  get_cfs_stats(pid,cfs,r,s,re);
+  argaddr(1, &addr);
+  char* ans = "1111";
+  struct proc* p = getProc(pid);
+  //printf("%d\n", p->pid);
+  if(p != 0){
+    ans[0]=p->cfs_priority;
+    ans[1]=p->rtime;
+    ans[2]=p->stime;
+    ans[3]=p->retime;
+
+  }
+  copyout(p->pagetable, addr, ans, 4);
   return 0;
 }
 uint64
@@ -83,6 +93,7 @@ sys_set_policy()
   argint(0, &policy);
   if(policy>=0 && policy<=2){
       sched_policy=policy;
+      check = 0;
       return 0;
   }
   return -1;

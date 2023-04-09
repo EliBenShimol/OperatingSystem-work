@@ -22,8 +22,8 @@ int main(int argc, char *argv[])
             sleep(10);
         }
     }
-    int* stats=malloc(sizeof(int)*4);
-    get_cfs_stats(getpid(),stats);
+    char* stats=malloc(sizeof(char)*4);
+    get_cfs_stats(getpid(), stats);;
     printf("PID: %d, CFS priority: %d, runtime: %d, sleep time: %d,runnable time: %d\n",
         getpid(),stats[0],stats[1],stats[2],stats[3]);
     free(stats);
@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
             sleep(10);
             }
         }
-        int* stats=malloc(sizeof(int)*4);
-        //get_cfs_stats(getpid(),stats);
+        char* stats=malloc(sizeof(char)*4);
+        get_cfs_stats(getpid(),stats);
         printf("PID: %d, CFS priority: %d, runtime: %d, sleep time: %d,runnable time: %d\n",
         getpid(),stats[0],stats[1],stats[2],stats[3]);
         free(stats);  
@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
                         sleep(10);
                     }
                 } 
-                int* stats=malloc(sizeof(int)*4);
-                //get_cfs_stats(getpid(),stats);
+                char* stats=malloc(sizeof(char)*4);
+                get_cfs_stats(getpid(),stats);
                 printf("PID: %d, CFS priority: %d, runtime: %d, sleep time: %d,runnable time: %d\n",
                 getpid(),stats[0],stats[1],stats[2],stats[3]);
                 free(stats);
