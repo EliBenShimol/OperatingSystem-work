@@ -183,7 +183,7 @@ copyinstr2(char *s)
       printf("exec(echo, BIG) returned %d, not -1\n", fd);
       exit(1, "failed");
     }
-    exit(747, "done"); // OK
+    exit(747, ""); // OK
   }
 
   int st = 0;
@@ -282,7 +282,7 @@ rwsbrk()
   }
   close(fd);
   
-  exit(0, "done");
+  exit(0, "");
 }
 
 // test O_TRUNC.
@@ -397,7 +397,7 @@ truncate3(char *s)
       read(fd, buf, sizeof(buf));
       close(fd);
     }
-    exit(0, "done");
+    exit(0, "");
   }
 
   for(int i = 0; i < 150; i++){
@@ -416,7 +416,7 @@ truncate3(char *s)
 
   wait(&xstatus, 0);
   unlink("truncfile");
-  exit(xstatus, "done");
+  exit(xstatus, "");
 }
   
 
@@ -466,10 +466,10 @@ exitiputtest(char *s)
       printf("%s: unlink ../iputdir failed\n", s);
       exit(1, "failed");
     }
-    exit(0, "done");
+    exit(0, "");
   }
   wait(&xstatus, 0);
-  exit(xstatus, "done");
+  exit(xstatus, "");
 }
 
 // does the error path in open() for attempt to write a
@@ -503,7 +503,7 @@ openiputtest(char *s)
       printf("%s: open directory for write succeeded\n", s);
       exit(1, "failed");
     }
-    exit(0, "done");
+    exit(0, "");
   }
   sleep(1);
   if(unlink("oidir") != 0){
@@ -511,7 +511,7 @@ openiputtest(char *s)
     exit(1, "failed");
   }
   wait(&xstatus, 0);
-  exit(xstatus, "done");
+  exit(xstatus, "");
 }
 
 // simple file system tests
@@ -709,7 +709,7 @@ exectest(char *s)
     printf("%s: wait failed!\n", s);
   }
   if(xstatus != 0)
-    exit(xstatus, "done");
+    exit(xstatus, "");
 
   fd = open("echo-ok", O_RDONLY);
   if(fd < 0) {
@@ -722,7 +722,7 @@ exectest(char *s)
   }
   unlink("echo-ok");
   if(buf[0] == 'O' && buf[1] == 'K')
-    exit(0, "done");
+    exit(0, "");
   else {
     printf("%s: wrong output\n", s);
     exit(1, "failed");
@@ -755,7 +755,7 @@ pipe1(char *s)
         exit(1, "failed");
       }
     }
-    exit(0, "done");
+    exit(0, "");
   } else if(pid > 0){
     close(fds[1]);
     total = 0;
@@ -778,7 +778,7 @@ pipe1(char *s)
     }
     close(fds[0]);
     wait(&xstatus, 0);
-    exit(xstatus, "done");
+    exit(xstatus, "");
   } else {
     printf("%s: fork() failed\n", s);
     exit(1, "failed");
@@ -802,7 +802,7 @@ killstatus(char *s)
       while(1) {
         getpid();
       }
-      exit(0, "done");
+      exit(0, "");
     }
     sleep(1);
     kill(pid1);
@@ -812,7 +812,7 @@ killstatus(char *s)
        exit(1, "failed");
     }
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 // meant to be run w/ at most two CPUs
@@ -894,7 +894,7 @@ exitwait(char *s)
         exit(1, "failed");
       }
     } else {
-      exit(i, "done");
+      exit(i, "");
     }
   }
 }
@@ -923,10 +923,10 @@ reparent(char *s)
         kill(master_pid);
         exit(1, "failed");
       }
-      exit(0, "done");
+      exit(0, "");
     }
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 // what if two children exit() at the same time?
@@ -940,7 +940,7 @@ twochildren(char *s)
       exit(1, "failed");
     }
     if(pid1 == 0){
-      exit(0, "done");
+      exit(0, "");
     } else {
       int pid2 = fork();
       if(pid2 < 0){
@@ -948,7 +948,7 @@ twochildren(char *s)
         exit(1, "failed");
       }
       if(pid2 == 0){
-        exit(0, "done");
+        exit(0, "");
       } else {
         wait(0, 0);
         wait(0, 0);
@@ -976,11 +976,11 @@ forkfork(char *s)
           exit(1, "failed");
         }
         if(pid1 == 0){
-          exit(0, "done");
+          exit(0, "");
         }
         wait(0, 0);
       }
-      exit(0, "done");
+      exit(0, "");
     }
   }
 
@@ -1008,14 +1008,14 @@ forkforkfork(char *s)
     while(1){
       int fd = open("stopforking", 0);
       if(fd >= 0){
-        exit(0, "done");
+        exit(0, "");
       }
       if(fork() < 0){
         close(open("stopforking", O_CREATE|O_RDWR));
       }
     }
 
-    exit(0, "done");
+    exit(0, "");
   }
 
   sleep(20); // two seconds
@@ -1041,12 +1041,12 @@ reparent2(char *s)
     if(pid1 == 0){
       fork();
       fork();
-      exit(0, "done");
+      exit(0, "");
     }
     wait(0, 0);
   }
 
-  exit(0, "done");
+  exit(0, "");
 }
 
 // allocate all mem, free it, and allocate again
@@ -1073,16 +1073,16 @@ mem(char *s)
       exit(1, "failed");
     }
     free(m1);
-    exit(0, "done");
+    exit(0, "");
   } else {
     int xstatus;
     wait(&xstatus, 0);
     if(xstatus == -1){
       // probably page fault, so might be lazy lab,
       // so OK.
-      exit(0, "done");
+      exit(0, "");
     }
-    exit(xstatus, "done");
+    exit(xstatus, "");
   }
 }
 
@@ -1112,12 +1112,12 @@ sharedfd(char *s)
     }
   }
   if(pid == 0) {
-    exit(0, "done");
+    exit(0, "");
   } else {
     int xstatus;
     wait(&xstatus, 0);
     if(xstatus != 0)
-      exit(xstatus, "done");
+      exit(xstatus, "");
   }
   
   close(fd);
@@ -1138,7 +1138,7 @@ sharedfd(char *s)
   close(fd);
   unlink("sharedfd");
   if(nc == N*SZ && np == N*SZ){
-    exit(0, "done");
+    exit(0, "");
   } else {
     printf("%s: nc/np test fails\n", s);
     exit(1, "failed");
@@ -1179,7 +1179,7 @@ fourfiles(char *s)
           exit(1, "failed");
         }
       }
-      exit(0, "done");
+      exit(0, "");
     }
   }
 
@@ -1187,7 +1187,7 @@ fourfiles(char *s)
   for(pi = 0; pi < NCHILD; pi++){
     wait(&xstatus, 0);
     if(xstatus != 0)
-      exit(xstatus, "done");
+      exit(xstatus, "");
   }
 
   for(i = 0; i < NCHILD; i++){
@@ -1246,7 +1246,7 @@ createdelete(char *s)
           }
         }
       }
-      exit(0, "done");
+      exit(0, "");
     }
   }
 
@@ -1420,7 +1420,7 @@ concreate(char *s)
       close(fd);
     }
     if(pid == 0) {
-      exit(0, "done");
+      exit(0, "");
     } else {
       int xstatus;
       wait(&xstatus, 0);
@@ -1480,7 +1480,7 @@ concreate(char *s)
       unlink(file);
     }
     if(pid == 0)
-      exit(0, "done");
+      exit(0, "");
     else
       wait(0, 0);
   }
@@ -1515,7 +1515,7 @@ linkunlink(char *s)
   if(pid)
     wait(0, 0);
   else
-    exit(0, "done");
+    exit(0, "");
 }
 
 
@@ -1967,7 +1967,7 @@ forktest(char *s)
     if(pid < 0)
       break;
     if(pid == 0)
-      exit(0, "done");
+      exit(0, "");
   }
 
   if (n == 0) {
@@ -2010,7 +2010,7 @@ sbrkbasic(char *s)
     a = sbrk(TOOMUCH);
     if(a == (char*)0xffffffffffffffffL){
       // it's OK if this fails.
-      exit(0, "done");
+      exit(0, "");
     }
     
     for(b = a; b < a+TOOMUCH; b += 4096){
@@ -2052,9 +2052,9 @@ sbrkbasic(char *s)
     exit(1, "failed");
   }
   if(pid == 0)
-    exit(0, "done");
+    exit(0, "");
   wait(&xstatus, 0);
-  exit(xstatus, "done");
+  exit(xstatus, "");
 }
 
 void
@@ -2313,7 +2313,7 @@ bigargtest(char *s)
     exec("echo", args);
     fd = open("bigarg-ok", O_CREATE);
     close(fd);
-    exit(0, "done");
+    exit(0, "");
   } else if(pid < 0){
     printf("%s: bigargtest: fork failed\n", s);
     exit(1, "failed");
@@ -2321,7 +2321,7 @@ bigargtest(char *s)
   
   wait(&xstatus, 0);
   if(xstatus != 0)
-    exit(xstatus, "done");
+    exit(xstatus, "");
   fd = open("bigarg-ok", 0);
   if(fd < 0){
     printf("%s: bigarg test failed!\n", s);
@@ -2416,9 +2416,9 @@ stacktest(char *s)
   }
   wait(&xstatus, 0);
   if(xstatus == -1)  // kernel killed child?
-    exit(0, "done");
+    exit(0, "");
   else
-    exit(xstatus, "done");
+    exit(xstatus, "");
 }
 
 // check that writes to text segment fault
@@ -2439,9 +2439,9 @@ textwrite(char *s)
   }
   wait(&xstatus, 0);
   if(xstatus == -1)  // kernel killed child?
-    exit(0, "done");
+    exit(0, "");
   else
-    exit(xstatus, "done");
+    exit(xstatus, "");
 }
 
 // regression test. copyin(), copyout(), and copyinstr() used to cast
@@ -2456,7 +2456,7 @@ pgbug(char *s)
   exec(big, argv);
   pipe(big);
 
-  exit(0, "done");
+  exit(0, "");
 }
 
 // regression test. does the kernel panic if a process sbrk()s its
@@ -2477,7 +2477,7 @@ sbrkbugs(char *s)
     // causing exit() to panic.
     sbrk(-sz);
     // user page fault here.
-    exit(0, "done");
+    exit(0, "");
   }
   wait(0, 0);
 
@@ -2492,7 +2492,7 @@ sbrkbugs(char *s)
     // page; there used to be a bug that would incorrectly
     // free the first page.
     sbrk(-(sz - 3500));
-    exit(0, "done");
+    exit(0, "");
   }
   wait(0, 0);
 
@@ -2510,11 +2510,11 @@ sbrkbugs(char *s)
     // a panic.
     sbrk(-10);
 
-    exit(0, "done");
+    exit(0, "");
   }
   wait(0, 0);
 
-  exit(0, "done");
+  exit(0, "");
 }
 
 // if process size was somewhat more than a page boundary, and then
@@ -2568,7 +2568,7 @@ badarg(char *s)
     exec("echo", argv);
   }
   
-  exit(0, "done");
+  exit(0, "");
 }
 
 struct test {
@@ -2725,7 +2725,7 @@ manywrites(char *s)
       }
 
       unlink(name);
-      exit(0, "done");
+      exit(0, "");
     }
   }
 
@@ -2733,9 +2733,9 @@ manywrites(char *s)
     int st = 0;
     wait(&st, 0);
     if(st != 0)
-      exit(st, "done");
+      exit(st, "");
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 // regression test. does write() with an invalid buffer pointer cause
@@ -2772,7 +2772,7 @@ badwrite(char *s)
   close(fd);
   unlink("junk");
 
-  exit(0, "done");
+  exit(0, "");
 }
 
 // test the exec() code that cleans up if it runs out
@@ -2803,13 +2803,13 @@ execout(char *s)
       close(1);
       char *args[] = { "echo", "x", 0 };
       exec("echo", args);
-      exit(0, "done");
+      exit(0, "");
     } else {
       wait((int*)0, 0);
     }
   }
 
-  exit(0, "done");
+  exit(0, "");
 }
 
 // can the kernel tolerate running out of disk space?
@@ -2953,7 +2953,7 @@ run(void f(char *), char *s) {
   }
   if(pid == 0) {
     f(s);
-    exit(0, "done");
+    exit(0, "");
   } else {
     wait(&xstatus, 0);
     if(xstatus != 0) 
@@ -3020,7 +3020,7 @@ countfree()
       }
     }
 
-    exit(0, "done");
+    exit(0, "");
   }
 
   close(fds[1]);
@@ -3097,5 +3097,5 @@ main(int argc, char *argv[])
     exit(1, "failed");
   }
   printf("ALL TESTS PASSED\n");
-  exit(0, "done");
+  exit(0, "");
 }

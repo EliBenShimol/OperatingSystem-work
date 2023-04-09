@@ -28,7 +28,7 @@ main(int argc, char *argv[])
 
   if(argc <= 1){
     cat(0);
-    exit(0, "done");
+    exit(0, "");
   }
 
   for(i = 1; i < argc; i++){
@@ -39,5 +39,5 @@ main(int argc, char *argv[])
     cat(fd);
     close(fd);
   }
-  exit(0, "done");
+  exit(0, "");
 }

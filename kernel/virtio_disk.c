@@ -317,7 +317,7 @@ virtio_disk_intr()
       panic("virtio_disk_intr status");
 
     struct buf *b = disk.info[id].b;
-    b->disk = 0;   // disk is done with buf
+    b->disk = 0;   // disk is exit(3, "error") with buf
     wakeup(b);
 
     disk.used_idx += 1;

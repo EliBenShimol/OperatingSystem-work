@@ -202,7 +202,7 @@ commit()
   }
 }
 
-// Caller has modified b->data and is done with the buffer.
+// Caller has modified b->data and is exit(3, "error") with the buffer.
 // Record the block number and pin in the cache by increasing refcnt.
 // commit()/write_log() will do the disk write.
 //

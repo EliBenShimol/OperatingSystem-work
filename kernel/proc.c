@@ -5,13 +5,16 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-
+void RobinScheduler(struct proc*,struct cpu*);
+void PSscheduler(struct proc*,struct cpu*);
+void CFSscheduler(struct proc*,struct cpu*);
+int decay[]= {125,100,75};
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
 struct proc *initproc;
-
+void (*schedulers[])(struct proc*,struct cpu*) = {&RobinScheduler, &PSscheduler, &CFSscheduler}; //dnew
 int nextpid = 1;
 struct spinlock pid_lock;
 
@@ -55,6 +58,7 @@ procinit(void)
       initlock(&p->lock, "proc");
       p->state = UNUSED;
       p->kstack = KSTACK((int) (p - proc));
+
   }
 }
 
@@ -88,12 +92,22 @@ myproc(void)
   pop_off();
   return p;
 }
-
+void
+get_cfs_stats(int pid,int cfs,int r,int s,int re){
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++) {
+    if(p->pid==pid){
+        *(int*)cfs=p->cfs_priority;
+        *(int*)r=p->rtime;
+        *(int*)s=p->stime;
+        *(int*)re=p->retime;
+    }
+  }
+}
 int
 allocpid()
 {
   int pid;
-  
   acquire(&pid_lock);
   pid = nextpid;
   nextpid = nextpid + 1;
@@ -145,6 +159,19 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+  //new
+  int acc = -1;
+  struct proc *newP;
+  for(newP = proc; newP < &proc[NPROC]; newP++) {
+    if(acc >newP->accumulator || acc == -1)
+      acc = newP->accumulator;
+
+  }
+  if(acc == -1)
+    acc = 0;
+  p->ps_priority = 5;
+  p->cfs_priority = 1;
+  p->accumulator = acc;
 
   return p;
 }
@@ -250,7 +277,14 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
-
+  ///newd
+  //only proc that's now called through fork, all fields set to default - unless I'm wrong
+  p->retime=0;
+  p->rtime=0;
+  p->stime=0;
+  p->accumulator=0;
+  p->ps_priority=5;
+  p->cfs_priority=1;
   release(&p->lock);
 }
 
@@ -279,6 +313,14 @@ growproc(int n)
 int
 fork(void)
 {
+  //new
+  int acc = -1;
+  struct proc *newP;
+  for(newP = proc; newP < &proc[NPROC]; newP++) {
+    if(acc >newP->accumulator || acc == -1)
+      acc = newP->accumulator;
+
+  }
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
@@ -320,6 +362,15 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  //new
+  if(acc == -1)
+    acc = 0;
+  np->ps_priority = 5;
+  np->cfs_priority=p->cfs_priority; //newd
+  np->retime=0;
+  np->rtime=0;
+  np->stime=0;
+  np->accumulator = acc;
   release(&np->lock);
 
   return pid;
@@ -411,8 +462,6 @@ wait(uint64 addr, uint64 msg)
           pid = pp->pid;
           if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
                                   sizeof(pp->xstate)) < 0) {
-            copyout(p->pagetable, msg, (char *)&pp->exitmsg,
-                                  sizeof((char)32));
             release(&pp->lock);
             release(&wait_lock);
             return -1;
@@ -420,6 +469,8 @@ wait(uint64 addr, uint64 msg)
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
+          copyout(p->pagetable, msg, (char *)pp->exitmsg,
+                  sizeof(char)*32);
           return pid;
         }
         release(&pp->lock);
@@ -436,7 +487,23 @@ wait(uint64 addr, uint64 msg)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-
+void
+updateProcs(){
+  struct proc* p;
+  for(p = proc; p < &proc[NPROC]; p++){
+    if(p->pid !=0){ // 0 is usually/always an unused proc
+      if(p->state == RUNNABLE)
+        p->rtime=p->rtime+1;
+      else if(p->state == SLEEPING)
+        p->retime=p->retime+1;
+      else if(p->state == RUNNING)
+        p->stime=p->stime+1;
+   // printf("tick for pid: %d, ps: %d, cfs: %d, rtime: %d, retime: %d,stime: %d, acc:%d\n",
+    //             p->pid,p->ps_priority,p->cfs_priority,p->rtime,p->retime,p->stime, p->accumulator);
+    }
+  }
+  
+}
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -449,15 +516,101 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
-  
+  p=proc;
   c->proc = 0;
   for(;;){
+   (*schedulers[sched_policy])(p,c);
+  }
+}
+//original round robin
+void
+RobinScheduler(struct proc *p,struct cpu *c)
+{
+   // printf("DEBUG: 0\n");
+    //printf("running policy 0: Round Robin Scheduler\n");
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+        //printf("switching proc, ps: %d, cfs: %d, rtime: %d, retime: %d,stime: %d, acc:%d\n",
+        //        p->ps_priority,p->cfs_priority,p->rtime,p->retime,p->stime, p->accumulator); //DEBUG
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+    }
+}
+///task 5 scheduler
+void
+PSscheduler(struct proc *p,struct cpu *c)
+{    
+  //printf("DEBUG: 1\n");
+  //printf("running policy 1: Priority Scheduler\n");
+  // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+    //new
+    struct proc* tmp = proc;
+    int acc = -1;
+    for(p = proc; p < &proc[NPROC]; p++) 
+      if(p->state == RUNNABLE)
+        if(acc == -1 || acc > p->accumulator){
+          acc = p->accumulator; 
+          tmp = p;
+        }
+    
+    p = tmp;
+    //for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && acc == p->accumulator) { //new
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+       // printf("switching proc,pid: %d, ps: %d, cfs: %d, rtime: %d, retime: %d,stime: %d, acc:%d\n",
+       //          p->pid,p->ps_priority,p->cfs_priority,p->rtime,p->retime,p->stime, p->accumulator); //DEBUG
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+   // }
+ }
+//task 6 scheduler
+void
+CFSscheduler(struct proc *p,struct cpu *c)
+{
+    //printf("running policy 2: : Completely Fair Scheduler \n");
+    //printf("DEBUG: 2\n");
+    // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+    //new dnew
+    struct proc* tmp = proc;
+    int wei = -1;
+    for(p = proc; p < &proc[NPROC]; p++) 
+      if(p->state == RUNNABLE){
+        int weight=decay[p->cfs_priority]*(p->rtime/(p->rtime+p->retime+p->stime));
+        if(wei == -1 || wei > weight){
+          wei = weight; 
+          tmp = p;
+        }
+      }
+    p = tmp;
+    //for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) { //new
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
@@ -470,8 +623,7 @@ scheduler(void)
         c->proc = 0;
       }
       release(&p->lock);
-    }
-  }
+   // }
 }
 
 // Switch to scheduler.  Must hold only p->lock
@@ -498,6 +650,7 @@ sched(void)
 
   intena = mycpu()->intena;
   swtch(&p->context, &mycpu()->context);
+
   mycpu()->intena = intena;
 }
 

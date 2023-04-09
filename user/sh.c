@@ -128,7 +128,7 @@ runcmd(struct cmd *cmd)
       runcmd(bcmd->cmd);
     break;
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 int
@@ -167,9 +167,11 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
-    wait(0, 0);
+    char* a = (char*)(malloc(sizeof(char)*32));
+    wait(0, a);
+    printf(a);
   }
-  exit(0, "done");
+  exit(0, "");
 }
 
 void
@@ -189,6 +191,7 @@ fork1(void)
     panic("fork");
   return pid;
 }
+
 
 //PAGEBREAK!
 // Constructors

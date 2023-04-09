@@ -61,7 +61,7 @@ usertrap(void)
     p->trapframe->epc += 4;
 
     // an interrupt will change sepc, scause, and sstatus,
-    // so enable only now that we're done with those registers.
+    // so enable only now that we're exit(3, "error") with those registers.
     intr_on();
 
     syscall();
@@ -77,8 +77,12 @@ usertrap(void)
     exit(-1, p->exitmsg);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  if(which_dev == 2){
+    //new
+    int add = p->ps_priority;
+    p->accumulator = p->accumulator + add;
     yield();
+  }
 
   usertrapret();
 }
@@ -151,8 +155,13 @@ kerneltrap()
   }
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
+  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING){
+    //new
+    struct proc *p = myproc();
+    int add = p->ps_priority;
+    p->accumulator = p->accumulator + add;
     yield();
+  }
 
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.
@@ -164,6 +173,7 @@ void
 clockintr()
 {
   acquire(&tickslock);
+  updateProcs(); //new, maybe borken
   ticks++;
   wakeup(&ticks);
   release(&tickslock);

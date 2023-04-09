@@ -5,7 +5,7 @@
 #include "defs.h"
 
 volatile static int started = 0;
-
+int sched_policy;
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
@@ -15,6 +15,8 @@ main()
     printfinit();
     printf("\n");
     printf("xv6 kernel is booting\n");
+    printf("\n");
+    printf("Scheduler set to default Round Robin scheduler\n");
     printf("\n");
     kinit();         // physical page allocator
     kvminit();       // create kernel page table
@@ -40,6 +42,6 @@ main()
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts
   }
-
+  sched_policy=0;
   scheduler();        
 }

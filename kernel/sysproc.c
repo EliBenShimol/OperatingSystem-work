@@ -35,6 +35,51 @@ sys_memsize(void)
 {
   return myproc()->sz;
 }
+//newd
+uint64
+sys_set_ps_priority(void)
+{
+  int priority=-1;
+  argint(0, &priority);
+  if(priority>=0 && priority<=10){
+    myproc()->ps_priority = priority;
+  }
+  return 0;
+}
+uint64
+sys_set_cfs_priority()
+{
+  int priority=-1;
+  argint(0, &priority);
+  if(priority>=0 && priority<=2){
+    myproc()->cfs_priority = priority;
+    return 0;
+  }
+  return -1;
+}
+uint64
+sys_get_cfs_stats(){
+  int pid=-1,cfs=0,r=0,s=0,re=0;
+  argint(0, &pid);
+  argint(1, &cfs);
+  argint(2, &r);
+  argint(3, &s);
+  argint(4, &re);
+  get_cfs_stats(pid,cfs,r,s,re);
+  return 0;
+}
+uint64
+sys_set_policy()
+{
+  int policy=-1;
+  argint(0, &policy);
+  if(policy>=0 && policy<=2){
+      sched_policy=policy;
+      return 0;
+  }
+  return -1;
+
+}
 
 uint64
 sys_wait(void)
