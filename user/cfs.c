@@ -18,12 +18,12 @@ int main(int argc, char *argv[])
         set_cfs_priority(0);
         for(int i=0;i<1000000;i++){
         if(i%100000==0){
-            printf("child 1 %d/100 done\n",i/10000);
+            printf("child 1 %d/10 done\n",i/100000);
             sleep(10);
         }
     }
     int* stats=malloc(sizeof(int)*4);
-    get_cfs_stats(getpid(),stats);
+    //get_cfs_stats(getpid(),stats);
     printf("PID: %d, CFS priority: %d, runtime: %d, sleep time: %d,runnable time: %d\n",
         getpid(),stats[0],stats[1],stats[2],stats[3]);
     free(stats);
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         printf("Starting child 2 test\n");
         for(int i=0;i<1000000;i++){
         if(i%100000==0){
-            printf("child 2 %d/100 done\n",i/10000);
+            printf("child 2 %d/10 done\n",i/100000);
             sleep(10);
             }
         }
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
                 set_cfs_priority(2);
                 for(int i=0;i<1000000;i++){
                     if(i%100000==0){
-                        printf("child 3 %d/100 done\n",i/10000);
+                        printf("child 3 %d/100 done\n",i/100000);
                         sleep(10);
                     }
                 } 
