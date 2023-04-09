@@ -39,10 +39,19 @@ sys_memsize(void)
 
 //new
 
-void
-sys_set_ps_priority(int priority)
+uint64
+sys_set_ps_priority(void)
 {
+  int priority;
+  argint(0, &priority);
   myproc()->ps_priority = priority;
+  return 0;
+}
+
+uint64
+sys_get_ps_priority(void)
+{
+  return myproc()->ps_priority;
 }
 
 //task3

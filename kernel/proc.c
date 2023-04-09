@@ -451,7 +451,7 @@ wait(uint64 addr, uint64 msg)
           }
           if(pp->exitmsg != 0 && msg != 0){
             int count = 0;
-            while(pp->exitmsg[count]> 31 || pp->exitmsg[count]==10)
+            while((pp->exitmsg[count]> 31 || pp->exitmsg[count]==10) && count <33)
               count++;
             copyout(p->pagetable, msg, pp->exitmsg, count);
           }
@@ -483,6 +483,7 @@ wait(uint64 addr, uint64 msg)
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
 
+//task5
 void
 scheduler(void)
 {

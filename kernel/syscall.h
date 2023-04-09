@@ -23,3 +23,4 @@
 #define SYS_memsize  22
 //new
 #define SYS_set_ps_priority 23
+#define SYS_get_ps_priority 24
