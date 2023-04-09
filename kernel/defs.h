@@ -82,7 +82,8 @@ void            printfinit(void);
 
 // proc.c
 
-//int sched_policy;
+extern int sched_policy;
+void            get_cfs_stats(int,int,int,int,int);//pid,cfs,rt,st,ret
 void            updateProcs(void);
 int             cpuid(void);
 void            exit(int, char* msg);
