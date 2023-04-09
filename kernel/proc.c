@@ -504,11 +504,11 @@ updateProcs(){
   for(p = proc; p < &proc[NPROC]; p++){
     if(p->pid !=0){ // 0 is usually/always an unused proc
       if(p->state == RUNNABLE)
-        p->rtime=p->rtime+1;
-      else if(p->state == SLEEPING)
         p->retime=p->retime+1;
-      else if(p->state == RUNNING)
+      else if(p->state == SLEEPING)
         p->stime=p->stime+1;
+      else if(p->state == RUNNING)
+        p->rtime=p->rtime+1;
    // printf("tick for pid: %d, ps: %d, cfs: %d, rtime: %d, retime: %d,stime: %d, acc:%d\n",
     //             p->pid,p->ps_priority,p->cfs_priority,p->rtime,p->retime,p->stime, p->accumulator);
     }
