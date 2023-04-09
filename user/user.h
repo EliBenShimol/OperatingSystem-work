@@ -2,6 +2,7 @@ struct stat;
 
 // system calls
 int fork(void);
+//task3
 int exit(int, char*) __attribute__((noreturn));
 int wait(int*, char*);
 int pipe(int*);
@@ -22,12 +23,13 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+//task2
 int memsize(void);
 void set_ps_priority(int);   //new
+int get_ps_priority(void); 
 int set_cfs_priority(int);   //newd
 void get_cfs_stats(int,int*,int*,int*,int*);   //newd
 int set_policy(int);   //newd
-
 
 // ulib.c
 int stat(const char*, struct stat*);

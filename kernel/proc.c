@@ -160,6 +160,7 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
   //new
+  
   int acc = -1;
   struct proc *newP;
   for(newP = proc; newP < &proc[NPROC]; newP++) {
@@ -172,6 +173,7 @@ found:
   p->ps_priority = 5;
   p->cfs_priority = 1;
   p->accumulator = acc;
+  
 
   return p;
 }
@@ -314,6 +316,7 @@ int
 fork(void)
 {
   //new
+  
   int acc = -1;
   struct proc *newP;
   for(newP = proc; newP < &proc[NPROC]; newP++) {
@@ -321,6 +324,7 @@ fork(void)
       acc = newP->accumulator;
 
   }
+  
   int i, pid;
   struct proc *np;
   struct proc *p = myproc();
@@ -363,6 +367,7 @@ fork(void)
   acquire(&np->lock);
   np->state = RUNNABLE;
   //new
+  
   if(acc == -1)
     acc = 0;
   np->ps_priority = 5;
@@ -371,6 +376,7 @@ fork(void)
   np->rtime=0;
   np->stime=0;
   np->accumulator = acc;
+  
   release(&np->lock);
 
   return pid;
@@ -394,6 +400,7 @@ reparent(struct proc *p)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait().
+//task3
 void
 exit(int status, char* msg)
 {
@@ -439,6 +446,7 @@ exit(int status, char* msg)
 
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
+//task3
 int
 wait(uint64 addr, uint64 msg)
 {
@@ -466,11 +474,15 @@ wait(uint64 addr, uint64 msg)
             release(&wait_lock);
             return -1;
           }
+          if(pp->exitmsg != 0 && msg != 0){
+            int count = 0;
+            while((pp->exitmsg[count]> 31 || pp->exitmsg[count]==10) && count <33)
+              count++;
+            copyout(p->pagetable, msg, pp->exitmsg, count);
+          }
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
-          copyout(p->pagetable, msg, (char *)pp->exitmsg,
-                  sizeof(char)*32);
           return pid;
         }
         release(&pp->lock);
@@ -511,6 +523,8 @@ updateProcs(){
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+
+//task5
 void
 scheduler(void)
 {
@@ -625,6 +639,39 @@ CFSscheduler(struct proc *p,struct cpu *c)
       release(&p->lock);
    // }
 }
+
+/* scheduler1
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct cpu *c = mycpu();
+  
+  c->proc = 0;
+  for(;;){
+    // Avoid deadlock by ensuring that devices can interrupt.
+    intr_on();
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+    }
+  }
+}
+*/
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores

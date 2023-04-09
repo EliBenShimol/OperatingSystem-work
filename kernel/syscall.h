@@ -26,3 +26,4 @@
 #define SYS_set_cfs_priority 24
 #define SYS_get_cfs_stats 25
 #define SYS_set_policy 26
+#define SYS_get_ps_priority 27

@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 
+//task3
 uint64
 sys_exit(void)
 {
@@ -29,12 +30,19 @@ sys_fork(void)
   return fork();
 }
 
-
+//task2
 uint64
 sys_memsize(void)
 {
   return myproc()->sz;
 }
+
+//new
+uint64
+sys_get_ps_priority(void)
+{
+  return myproc()->ps_priority;
+  
 //newd
 uint64
 sys_set_ps_priority(void)
@@ -78,9 +86,9 @@ sys_set_policy()
       return 0;
   }
   return -1;
-
 }
 
+//task3
 uint64
 sys_wait(void)
 {

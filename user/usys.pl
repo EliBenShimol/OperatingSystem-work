@@ -37,6 +37,7 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 entry("memsize");
+entry("get_ps_priority");
 entry("set_cfs_priority");
 entry("set_policy");
 entry("get_cfs_stats");
