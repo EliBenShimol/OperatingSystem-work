@@ -178,6 +178,7 @@ clockintr()
   updateProcs(); //new, maybe borken
   ticks++;
   wakeup(&ticks);
+  //updateProcs();
   release(&tickslock);
 }
 

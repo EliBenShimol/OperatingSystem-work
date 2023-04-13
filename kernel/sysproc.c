@@ -83,6 +83,7 @@ sys_get_cfs_stats(){
     ans[3]=p->retime;
 
   }
+  //printf("%d %d %d %d\n", p->cfs_priority, p->rtime, p->stime, p->retime);
   copyout(p->pagetable, addr, ans, 4);
   return 0;
 }

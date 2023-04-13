@@ -5,16 +5,16 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
-void RobinScheduler(struct proc*,struct cpu*);
-void PSscheduler(struct proc*,struct cpu*);
-void CFSscheduler(struct proc*,struct cpu*);
-int decay[]= {125,100,75};
+void RobinScheduler(void);
+void PSscheduler(void);
+void CFSscheduler(void);
+int decay[]= {75,100,125};
 struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
 struct proc *initproc;
-void (*schedulers[])(struct proc*,struct cpu*) = {&RobinScheduler, &PSscheduler, &CFSscheduler}; //dnew
+//void (*schedulers[])(void) = {&RobinScheduler, &PSscheduler, &CFSscheduler}; //dnew
 int nextpid = 1;
 struct spinlock pid_lock;
 
@@ -527,22 +527,33 @@ updateProcs(){
 void
 scheduler(void)
 {
-  struct proc *p;
-  struct cpu *c = mycpu();
-  p=proc;
-  c->proc = 0;
   for(;;){
-   (*schedulers[sched_policy])(p,c);
+   if(sched_policy == 0){
+    RobinScheduler();
+   }
+   else if (sched_policy == 1){
+    //printf("%d\n", sched_policy);
+    PSscheduler();
+   }
+   else{
+    //printf("%d\n", sched_policy);
+    CFSscheduler();
+   }
+  
   }
 }
 //original round robin
 void
-RobinScheduler(struct proc *p,struct cpu *c)
+RobinScheduler(void)
 {
   if(!check){
-    printf("DEBUG: 0\n");
+    //printf("DEBUG: 0\n");
     check++;
   }
+  struct proc *p;
+  struct cpu *c = mycpu();
+  p=proc;
+  c->proc = 0;
     //printf("running policy 0: Round Robin Scheduler\n");
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -568,12 +579,16 @@ RobinScheduler(struct proc *p,struct cpu *c)
 }
 ///task 5 scheduler
 void
-PSscheduler(struct proc *p,struct cpu *c)
+PSscheduler(void)
 {    
     if(!check){
-    printf("DEBUG: 1\n");
+    //printf("DEBUG: 1\n");
     check++;
   }
+  struct proc *p;
+  struct cpu *c = mycpu();
+  p=proc;
+  c->proc = 0;
   //printf("running policy 1: Priority Scheduler\n");
   // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
@@ -609,11 +624,15 @@ PSscheduler(struct proc *p,struct cpu *c)
  }
 //task 6 scheduler
 void
-CFSscheduler(struct proc *p,struct cpu *c)
+CFSscheduler(void)
 {
+  struct proc *p;
+  struct cpu *c = mycpu();
+  p=proc;
+  c->proc = 0;
     //printf("running policy 2: : Completely Fair Scheduler \n");
     if(!check){
-      printf("DEBUG: 2\n");
+      //printf("DEBUG: 2\n");
       check++;
   }
     // Avoid deadlock by ensuring that devices can interrupt.
